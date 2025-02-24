@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.exception.UserNotFoundException;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.service.UserService;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -20,19 +23,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-
-        User newUser = this.userRepository.save(user);
-        return newUser;
+        return userRepository.save(user);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User fetchUserById(long id) {
-        Optional<User> user = this.userRepository.findById(id);
-        if (user.isEmpty()) {
-            return null;
-        }
-
-        return user.get();
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found for ID " + id));
     }
 
     @Override
@@ -41,27 +39,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(User user) {
-        User currentUser = fetchUserById(user.getId());
-        if (currentUser == null) {
-            return currentUser;
-        }
-
-        currentUser.setName(user.getName());
-        currentUser.setEmail(user.getEmail());
-        currentUser.setPassword(user.getPassword());
-
-        return this.userRepository.save(currentUser);
+    public User updateUser(User updatedUser) {
+        User existing = fetchUserById(updatedUser.getId()); // throws exception if not found
+        existing.setName(updatedUser.getName());
+        existing.setEmail(updatedUser.getEmail());
+        existing.setPassword(updatedUser.getPassword());
+        return userRepository.save(existing);
     }
 
     @Override
-    public String deleteUser(long id) {
-        Optional<User> user = this.userRepository.findById(id);
-        if (user.isEmpty()) {
-            return "User not found!!";
+    public void deleteUser(long id) {
+        // Optional check if user exists, or just call deleteById
+        if (!userRepository.existsById(id)) {
+            throw new UserNotFoundException("User does not exist for " + id);
         }
-
-        this.userRepository.deleteById(id);
-        return "User has been deleted successfully!";
+        userRepository.deleteById(id);
     }
 }
