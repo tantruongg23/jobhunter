@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<RestResponse<Object>> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseFactory.error("ID is invalid", HttpStatus.NOT_FOUND, ex.getMessage());
+        return ResponseFactory.error("User not found", HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     // @ExceptionHandler(EntityNotFoundException.class)
