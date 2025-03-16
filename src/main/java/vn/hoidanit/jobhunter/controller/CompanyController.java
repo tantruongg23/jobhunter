@@ -1,7 +1,10 @@
 package vn.hoidanit.jobhunter.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,10 +14,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Company;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
 import vn.hoidanit.jobhunter.service.CompanyService;
@@ -36,8 +41,15 @@ public class CompanyController {
     }
 
     @GetMapping
-    public ResponseEntity<RestResponse<List<Company>>> getAllCompanies() {
-        List<Company> companies = this.companyService.findAll();
+    public ResponseEntity<RestResponse<PaginationResultDTO>> getAllCompanies(
+            @RequestParam("current") Optional<String> currentOptional,
+            @RequestParam("pageSize") Optional<String> pageSizeOptional) {
+
+        String sCurrent = currentOptional.orElse("");
+        String sPageSize = pageSizeOptional.orElse("");
+
+        Pageable pageable = PageRequest.of(Integer.parseInt(sCurrent) - 1, Integer.parseInt(sPageSize));
+        PaginationResultDTO companies = this.companyService.findAll(pageable);
         return ResponseFactory.success(companies, "Get all companies successfully");
     }
 

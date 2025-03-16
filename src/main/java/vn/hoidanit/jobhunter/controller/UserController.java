@@ -1,7 +1,10 @@
 package vn.hoidanit.jobhunter.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,9 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.exception.IdInvalidException;
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
@@ -52,8 +57,16 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<RestResponse<List<User>>> getAllUsers() {
-        List<User> users = this.userService.findAll();
+    public ResponseEntity<RestResponse<PaginationResultDTO>> getAllUsers(
+            @RequestParam("current") Optional<String> currentOptional,
+            @RequestParam("pageSize") Optional<String> pageSizeOptional) {
+
+        String sCurrent = currentOptional.orElse("");
+        String sPageSize = pageSizeOptional.orElse("");
+
+        Pageable pageable = PageRequest.of(Integer.parseInt(sCurrent) - 1, Integer.parseInt(sPageSize));
+
+        PaginationResultDTO users = this.userService.findAll(pageable);
         return ResponseFactory.success(users, "All users fetched successfully");
     }
 

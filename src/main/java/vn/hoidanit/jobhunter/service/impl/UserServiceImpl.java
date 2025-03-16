@@ -1,12 +1,14 @@
 package vn.hoidanit.jobhunter.service.impl;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.Meta;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.exception.UserNotFoundException;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.service.UserService;
@@ -38,8 +40,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findAll() {
-        return this.userRepository.findAll();
+    public PaginationResultDTO findAll(Pageable pageable) {
+        Page<User> pageUsers = this.userRepository.findAll(pageable);
+        PaginationResultDTO result = new PaginationResultDTO();
+        Meta meta = new Meta();
+        meta.setPage(pageUsers.getNumber() + 1);
+        meta.setPageSize(pageUsers.getSize());
+        meta.setPages(pageUsers.getTotalPages());
+        meta.setTotal(pageUsers.getTotalElements());
+
+        result.setMeta(meta);
+        result.setResult(pageUsers.getContent());
+
+        return result;
     }
 
     @Override

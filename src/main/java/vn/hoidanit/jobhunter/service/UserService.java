@@ -1,15 +1,16 @@
 package vn.hoidanit.jobhunter.service;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 
 public interface UserService {
     User create(User user);
 
     User findOne(long id);
 
-    List<User> findAll();
+    PaginationResultDTO findAll(Pageable pageable);
 
     User update(User user);
 

@@ -3,10 +3,13 @@ package vn.hoidanit.jobhunter.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.Company;
-import vn.hoidanit.jobhunter.exception.IdInvalidException;
+import vn.hoidanit.jobhunter.domain.dto.Meta;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.repository.CompanyRepository;
 import vn.hoidanit.jobhunter.service.CompanyService;
 
@@ -36,8 +39,20 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public List<Company> findAll() {
-        return this.companyRepository.findAll();
+    public PaginationResultDTO findAll(Pageable pageable) {
+        Page<Company> pageCompanies = this.companyRepository.findAll(pageable);
+        PaginationResultDTO result = new PaginationResultDTO();
+        Meta meta = new Meta();
+
+        meta.setPage(pageCompanies.getNumber() + 1);
+        meta.setPageSize(pageCompanies.getSize());
+        meta.setPages(pageCompanies.getTotalPages());
+        meta.setTotal(pageCompanies.getNumberOfElements());
+
+        result.setMeta(meta);
+        result.setResult(pageCompanies.getContent());
+
+        return result;
     }
 
     @Override
