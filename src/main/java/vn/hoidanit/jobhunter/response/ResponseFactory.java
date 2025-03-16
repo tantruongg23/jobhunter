@@ -32,7 +32,7 @@ public class ResponseFactory {
 
     // ERROR patterns if you want them here too
     public static <T> ResponseEntity<RestResponse<T>> error(
-            String errorMsg, HttpStatus status, String message) {
+            String errorMsg, HttpStatus status, Object message) {
 
         RestResponse<T> response = new RestResponse<>();
         response.setStatusCode(status.value());

@@ -1,7 +1,15 @@
 package vn.hoidanit.jobhunter.exception;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -23,9 +31,12 @@ public class GlobalExceptionHandler {
     // return ResponseEntity.badRequest().body(response);
     // }
 
-    @ExceptionHandler(value = IdInvalidException.class)
-    public ResponseEntity<RestResponse<String>> handleIdException(IdInvalidException ex) {
-        return ResponseFactory.error("ID is invalid", HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler(value = {
+            UsernameNotFoundException.class,
+            BadCredentialsException.class
+    })
+    public ResponseEntity<RestResponse<String>> handleIdException(Exception ex) {
+        return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Exception occurs...");
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -47,5 +58,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<Object>> handleCommonException(Exception ex) {
         return ResponseFactory.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<RestResponse<Object>> handleArgumentValidation(MethodArgumentNotValidException ex) {
+        BindingResult bindingResult = ex.getBindingResult();
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+
+        List<String> errors = new LinkedList<>();
+        for (FieldError fieldError : fieldErrors) {
+            errors.add(fieldError.getDefaultMessage());
+        }
+
+        Object message = (errors.size() > 1 ? errors : errors.get(0));
+        return ResponseFactory.error(ex.getBody().getDetail(), HttpStatus.BAD_REQUEST, message);
     }
 }
