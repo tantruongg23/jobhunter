@@ -31,18 +31,18 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<RestResponse<User>> createUser(@RequestBody User user) {
-        User createdUser = this.userService.createUser(user);
+        User createdUser = this.userService.create(user);
         return ResponseFactory.success(createdUser, "User created successfully", HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RestResponse<User>> getUserById(@PathVariable(name = "id") String reqId)
+    public ResponseEntity<RestResponse<User>> getUser(@PathVariable(name = "id") String reqId)
             throws IdInvalidException {
         long id;
         try {
             id = Long.parseLong(reqId);
 
-            User user = this.userService.fetchUserById(id);
+            User user = this.userService.findOne(id);
             return ResponseFactory.success(user, "User found");
         } catch (NumberFormatException e) {
             throw new IdInvalidException("User not found for ID " + reqId);
@@ -53,13 +53,13 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<RestResponse<List<User>>> getAllUsers() {
-        List<User> users = this.userService.fetchAllUsers();
+        List<User> users = this.userService.findAll();
         return ResponseFactory.success(users, "All users fetched successfully");
     }
 
     @PutMapping
     public ResponseEntity<RestResponse<User>> updateUser(@RequestBody User user) throws IdInvalidException {
-        User updatedUser = this.userService.updateUser(user);
+        User updatedUser = this.userService.update(user);
         return ResponseFactory.success(updatedUser, "User updated successfully");
     }
 
@@ -70,7 +70,7 @@ public class UserController {
         try {
             id = Long.parseLong(reqId);
 
-            userService.deleteUser(id);
+            userService.delete(id);
             return ResponseFactory.noContent("User deleted successfully");
         } catch (NumberFormatException e) {
             throw new IdInvalidException("User not found for ID " + reqId);

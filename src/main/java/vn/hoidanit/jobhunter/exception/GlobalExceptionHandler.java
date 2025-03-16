@@ -13,7 +13,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import jakarta.persistence.EntityNotFoundException;
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
 
@@ -43,6 +42,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestResponse<Object>> handleUserNotFound(UserNotFoundException ex) {
         return ResponseFactory.error("User not found", HttpStatus.NOT_FOUND, ex.getMessage());
     }
+
+    // @ExceptionHandler(CompanyErrorException.class)
+    // public ResponseEntity<RestResponse<Object>>
+    // handleCompanyException(CompanyErrorException ex) {
+    // return ResponseFactory.error("Company not found", HttpStatus.BAD_REQUEST,
+    // ex.getMessage());
+    // }
 
     // @ExceptionHandler(EntityNotFoundException.class)
     // public ResponseEntity<RestResponse<?>>

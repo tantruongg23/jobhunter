@@ -5,15 +5,15 @@ import java.util.List;
 import vn.hoidanit.jobhunter.domain.User;
 
 public interface UserService {
-    User createUser(User user);
+    User create(User user);
 
-    User fetchUserById(long id);
+    User findOne(long id);
 
-    List<User> fetchAllUsers();
+    List<User> findAll();
 
-    User updateUser(User user);
+    User update(User user);
 
-    void deleteUser(long id);
+    void delete(long id);
 
-    User findUserByEmail(String email);
+    User findByEmail(String email);
 }
