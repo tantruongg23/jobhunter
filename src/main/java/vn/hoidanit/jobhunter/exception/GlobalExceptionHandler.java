@@ -11,9 +11,13 @@ import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
@@ -33,7 +37,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {
             UsernameNotFoundException.class,
-            BadCredentialsException.class
+            BadCredentialsException.class,
+            MissingServletRequestPartException.class
     })
     public ResponseEntity<RestResponse<String>> handleIdException(Exception ex) {
         return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Exception occurs...");
@@ -50,8 +55,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<RestResponse<Object>> handleNotFound(NoHandlerFoundException ex) {
+    @ExceptionHandler(value = {
+            NoHandlerFoundException.class,
+            NoResourceFoundException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleNotFound(Exception ex) {
         return ResponseFactory.error(
                 "Resource not found",
                 HttpStatus.NOT_FOUND,
@@ -62,6 +70,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestResponse<Object>> handleCommonException(Exception ex) {
         return ResponseFactory.error(ex.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {
+            StorageException.class,
+            MaxUploadSizeExceededException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleFileUploadException(Exception ex) {
+        return ResponseFactory.error(ex.getMessage(),
+                HttpStatus.BAD_REQUEST, "Exception occurs when uploading file...");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
