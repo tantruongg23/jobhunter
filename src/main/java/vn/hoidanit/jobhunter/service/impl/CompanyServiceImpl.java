@@ -12,15 +12,23 @@ import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 
 import vn.hoidanit.jobhunter.repository.CompanyRepository;
+import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.service.CompanyService;
+import vn.hoidanit.jobhunter.service.UserService;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
 
-    public CompanyServiceImpl(CompanyRepository companyRepository) {
+    // private final UserService userService;
+    private final UserRepository userRepository;
+
+    public CompanyServiceImpl(CompanyRepository companyRepository,
+            UserRepository userRepository) {
         this.companyRepository = companyRepository;
+        // this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -72,6 +80,14 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void delete(long id) {
+
+        // Kiểm tra xem công ty có người dùng không
+        long userCount = this.userRepository.countByCompanyId(id);
+        // Nếu công ty có người dùng, throw exception và không xóa
+        if (userCount > 0) {
+            throw new IllegalStateException("Cannot delete company, there are users assigned to this company.");
+        }
+
         this.companyRepository.deleteById(id);
     }
 

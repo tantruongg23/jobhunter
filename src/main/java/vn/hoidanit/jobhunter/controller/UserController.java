@@ -23,7 +23,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
-import vn.hoidanit.jobhunter.domain.dto.request.ReqUserCreateDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserCreateDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResUserUpdateDTO;
 import vn.hoidanit.jobhunter.exception.IdInvalidException;
@@ -43,8 +43,8 @@ public class UserController {
     }
 
     @PostMapping()
-    public ResponseEntity<RestResponse<ReqUserCreateDTO>> createUser(@RequestBody User user) {
-        ReqUserCreateDTO createdUser = this.userService.create(user);
+    public ResponseEntity<RestResponse<ResUserCreateDTO>> createUser(@RequestBody User user) {
+        ResUserCreateDTO createdUser = this.userService.create(user);
         return ResponseFactory.success(createdUser, "User created successfully", HttpStatus.CREATED);
     }
 

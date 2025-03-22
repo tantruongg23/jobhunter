@@ -23,11 +23,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {
             IdInvalidException.class,
-            EmailExistedException.class
+            EmailExistedException.class,
+            IllegalStateException.class
     })
     public ResponseEntity<RestResponse<String>> handleCommonCRUDException(Exception ex) {
 
-        return ResponseFactory.error(ex.getMessage(), HttpStatus.NOT_FOUND, "Error occurs...");
+        return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Error occurs...");
     }
 
     @ExceptionHandler(value = {

@@ -27,4 +27,6 @@ public class ResUserUpdateDTO {
     @NotNull(message = "Age must not be empty")
     private int age;
     private Instant updatedAt;
+
+    private ResCompanyUserDTO company;
 }
