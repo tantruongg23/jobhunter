@@ -7,11 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
@@ -19,16 +21,14 @@ import vn.hoidanit.jobhunter.response.RestResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // @ExceptionHandler(value = IdInvalidException.class)
-    // public ResponseEntity<RestResponse<String>>
-    // handleIdException(IdInvalidException idInvalidException) {
-    // RestResponse<String> response = new RestResponse<>();
-    // response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-    // response.setMessage("IdInvalidException");
-    // response.setError(idInvalidException.getMessage());
+    @ExceptionHandler(value = {
+            IdInvalidException.class,
+            EmailExistedException.class
+    })
+    public ResponseEntity<RestResponse<String>> handleCommonCRUDException(Exception ex) {
 
-    // return ResponseEntity.badRequest().body(response);
-    // }
+        return ResponseFactory.error(ex.getMessage(), HttpStatus.NOT_FOUND, "Error occurs...");
+    }
 
     @ExceptionHandler(value = {
             UsernameNotFoundException.class,
@@ -38,32 +38,29 @@ public class GlobalExceptionHandler {
         return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Exception occurs...");
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<RestResponse<Object>> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseFactory.error("User not found", HttpStatus.NOT_FOUND, ex.getMessage());
+    // Xử lý lỗi BadJwtException và trả về 401 Unauthorized
+    @ExceptionHandler(BadJwtException.class)
+    public ResponseEntity<RestResponse<Object>> handleBadJwtException(BadJwtException ex) {
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+        response.setError(ex.getMessage());
+        response.setMessage("Token is invalid or malformed");
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
-    // @ExceptionHandler(CompanyErrorException.class)
-    // public ResponseEntity<RestResponse<Object>>
-    // handleCompanyException(CompanyErrorException ex) {
-    // return ResponseFactory.error("Company not found", HttpStatus.BAD_REQUEST,
-    // ex.getMessage());
-    // }
-
-    // @ExceptionHandler(EntityNotFoundException.class)
-    // public ResponseEntity<RestResponse<?>>
-    // handleEntityNotFound(EntityNotFoundException entityNotFoundException) {
-    // RestResponse<Object> response = new RestResponse<>();
-    // response.setStatusCode(HttpStatus.NOT_FOUND.value());
-    // response.setMessage(entityNotFoundException.getMessage());
-    // response.setError("Entity not found");
-
-    // return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    // }
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<RestResponse<Object>> handleNotFound(NoHandlerFoundException ex) {
+        return ResponseFactory.error(
+                "Resource not found",
+                HttpStatus.NOT_FOUND,
+                "404 not found. The URL you requested was not found.");
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<Object>> handleCommonException(Exception ex) {
-        return ResponseFactory.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ResponseFactory.error(ex.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

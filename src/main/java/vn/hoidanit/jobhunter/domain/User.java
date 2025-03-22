@@ -1,20 +1,51 @@
 package vn.hoidanit.jobhunter.domain;
 
+import java.time.Instant;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 
 @Entity
 @Table(name = "users")
+@Setter
+@Getter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @NotBlank(message = "Name must not be empty")
     private String name;
+
+    @Column(unique = true)
+    @NotBlank(message = "Email must not be empty")
     private String email;
+    @NotBlank(message = "Password must not be empty")
     private String password;
+    private int age;
+
+    @Enumerated(EnumType.STRING)
+    private GenderEnum gender;
+    private String address;
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String refreshToken;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
 
     public User() {
     }
@@ -25,36 +56,16 @@ public class User {
         this.password = password;
     }
 
-    public String getName() {
-        return name;
+    @PrePersist
+    public void handlePrePersist() {
+        this.createdAt = Instant.now();
+        this.createdBy = SecurityUtil.getCurrentUserLogin().orElse(null);
+
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @PreUpdate
+    public void handlePreUpdate() {
+        this.updatedAt = Instant.now();
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().orElse(null);
     }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
 }

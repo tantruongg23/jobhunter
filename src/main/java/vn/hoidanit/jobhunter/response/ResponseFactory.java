@@ -1,9 +1,30 @@
 package vn.hoidanit.jobhunter.response;
 
+import java.util.Map;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class ResponseFactory {
+
+    // SUCCESS with custom HttpStatus and Cookie
+    public static <T> ResponseEntity<RestResponse<T>> success(
+            T data, String message, HttpStatus httpStatus, String cookie) {
+
+        RestResponse<T> response = new RestResponse<>();
+        response.setStatusCode(httpStatus.value());
+        response.setData(data);
+        response.setMessage(message);
+        // error is null by default
+
+        if (cookie != null) {
+            return ResponseEntity.status(httpStatus)
+                    .header(HttpHeaders.SET_COOKIE, cookie)
+                    .body(response);
+        }
+        return new ResponseEntity<>(response, httpStatus);
+    }
 
     // SUCCESS with custom HttpStatus
     public static <T> ResponseEntity<RestResponse<T>> success(
