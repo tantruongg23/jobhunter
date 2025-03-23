@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.BadJwtException;
@@ -28,10 +29,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             IdInvalidException.class,
             EmailExistedException.class,
-            IllegalStateException.class
+            IllegalStateException.class,
+            IllegalArgumentException.class,
+            HttpMessageNotReadableException.class
     })
-    public ResponseEntity<RestResponse<String>> handleCommonCRUDException(Exception ex) {
 
+    public ResponseEntity<RestResponse<String>> handleCommonCRUDException(Exception ex) {
         return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Error occurs...");
     }
 

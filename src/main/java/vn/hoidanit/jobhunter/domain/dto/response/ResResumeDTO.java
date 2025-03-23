@@ -19,6 +19,7 @@ public class ResResumeDTO {
     private String createdBy;
     private String updatedBy;
 
+    private String companyName;
     private ResumeUserDTO user;
     private ResumeJobDTO job;
 

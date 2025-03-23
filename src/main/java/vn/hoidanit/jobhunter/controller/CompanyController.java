@@ -58,9 +58,8 @@ public class CompanyController {
         return ResponseFactory.success(company, "Get company successfully");
     }
 
-    @PutMapping("/{id}")
+    @PutMapping()
     public ResponseEntity<RestResponse<Company>> updateCompany(
-            @PathVariable(name = "id", required = false) final long id,
             @Valid @RequestBody Company company) {
         Company updatedCompany = this.companyService.update(company);
         return ResponseFactory.success(updatedCompany, "Update company successfully");

@@ -130,6 +130,7 @@ public class UserServiceImpl implements UserService {
 
         ResUserDTO userDTO = ResUserDTO.builder()
                 .id(user.getId())
+                .email(user.getEmail())
                 .name(user.getName())
                 .gender(user.getGender())
                 .address(user.getAddress())
