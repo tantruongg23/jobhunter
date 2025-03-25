@@ -7,6 +7,5 @@ import lombok.Setter;
 @Getter
 public class ResCompanyUserDTO {
     long id;
-
     String name;
 }

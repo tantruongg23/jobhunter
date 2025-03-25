@@ -1,5 +1,8 @@
 package vn.hoidanit.jobhunter.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -14,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
+import com.turkraft.springfilter.builder.FilterBuilder;
+import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 
 import jakarta.validation.Valid;
+import vn.hoidanit.jobhunter.domain.Company;
+import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Resume;
+import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResResumeCreateDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResResumeDTO;
@@ -24,14 +32,25 @@ import vn.hoidanit.jobhunter.domain.dto.response.ResResumeUpdateDTO;
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
 import vn.hoidanit.jobhunter.service.ResumeService;
+import vn.hoidanit.jobhunter.service.UserService;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
 
 @RestController
 @RequestMapping("/api/v1/resumes")
 public class ResumeController {
     private final ResumeService resumeService;
+    private final UserService userService;
 
-    public ResumeController(ResumeService resumeService) {
+    private final FilterBuilder filterBuilder;
+    private final FilterSpecificationConverter filterSpecificationConverter;
+
+    public ResumeController(ResumeService resumeService, UserService userService, FilterBuilder filterBuilder,
+            FilterSpecificationConverter filterSpecificationConverter) {
         this.resumeService = resumeService;
+        this.userService = userService;
+        this.filterBuilder = filterBuilder;
+        this.filterSpecificationConverter = filterSpecificationConverter;
+
     }
 
     @PostMapping
@@ -59,9 +78,37 @@ public class ResumeController {
     }
 
     @GetMapping
-    public ResponseEntity<RestResponse<PaginationResultDTO>> getAllResumes(@Filter Specification specification,
+    public ResponseEntity<RestResponse<PaginationResultDTO>> getAllResumes(@Filter Specification<Resume> specification,
             Pageable pageable) {
-        PaginationResultDTO resumes = this.resumeService.findAll(specification, pageable);
+
+        List<Long> arrJobIds = null;
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userService.findByEmail(email);
+        if (currentUser != null) {
+            Company userCompany = currentUser.getCompany();
+            if (userCompany != null) {
+                List<Job> companyJobs = userCompany.getJobs();
+                if (companyJobs != null && companyJobs.size() > 0) {
+                    arrJobIds = companyJobs
+                            .stream()
+                            .map(x -> x.getId())
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+
+        Specification<Resume> jobInSpec = filterSpecificationConverter
+                .convert(filterBuilder.field("job").in(filterBuilder.input(arrJobIds)).get());
+
+        Specification<Resume> finalSpec = jobInSpec.and(specification);
+
+        PaginationResultDTO resumes = this.resumeService.findAll(finalSpec, pageable);
         return ResponseFactory.success(resumes, "Get all resumes successfully");
+    }
+
+    @PostMapping("/by-user")
+    public ResponseEntity<RestResponse<PaginationResultDTO>> getResumeByUser(Pageable pageable) {
+        PaginationResultDTO result = this.resumeService.findAll(null, pageable);
+        return ResponseFactory.success(result, "Get resume by user successfully");
     }
 }

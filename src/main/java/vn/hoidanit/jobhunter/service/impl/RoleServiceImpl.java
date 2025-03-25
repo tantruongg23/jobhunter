@@ -56,10 +56,11 @@ public class RoleServiceImpl implements RoleService {
     public Role update(Role role) {
         Role currRole = this.findById(role.getId());
 
-        boolean isExisted = this.roleRepository.existsByName(role.getName());
-        if (!isExisted) {
-            throw new IdInvalidException("Role with name = " + role.getName() + " is not existed");
-        }
+        // boolean isExisted = this.roleRepository.existsByName(role.getName());
+        // if (!isExisted) {
+        // throw new IdInvalidException("Role with name = " + role.getName() + " is not
+        // existed");
+        // }
 
         // check permission
         if (role.getPermissions() != null) {
@@ -89,7 +90,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PaginationResultDTO findAll(Specification spec, Pageable pageable) {
+    public PaginationResultDTO findAll(Specification<Role> spec, Pageable pageable) {
         Page<Role> pageRoles = this.roleRepository.findAll(spec, pageable);
         PaginationResultDTO result = new PaginationResultDTO();
         PaginationResultDTO.Meta meta = new PaginationResultDTO.Meta();

@@ -48,20 +48,22 @@ public class UserController {
         return ResponseFactory.success(createdUser, "User created successfully", HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RestResponse<ResUserDTO>> getUser(@PathVariable(name = "id") String reqId)
+    @PutMapping
+    public ResponseEntity<RestResponse<ResUserUpdateDTO>> updateUser(@Valid @RequestBody ResUserUpdateDTO user)
             throws IdInvalidException {
-        long id;
-        try {
-            id = Long.parseLong(reqId);
+        ResUserUpdateDTO updatedUser = this.userService.update(user);
+        return ResponseFactory.success(updatedUser, "User updated successfully");
+    }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RestResponse<ResUserDTO>> getUser(@PathVariable(name = "id") long id)
+            throws IdInvalidException {
+        try {
             ResUserDTO user = this.userService.findOne(id);
             return ResponseFactory.success(user, "User found");
         } catch (NumberFormatException e) {
-            throw new IdInvalidException("User not found for ID " + reqId);
-            // No compilation error, because it's unchecked.
+            throw new IdInvalidException("User not found for ID " + id);
         }
-
     }
 
     @GetMapping
@@ -74,26 +76,15 @@ public class UserController {
         return ResponseFactory.success(users, "Users fetched successfully");
     }
 
-    @PutMapping
-    public ResponseEntity<RestResponse<ResUserUpdateDTO>> updateUser(@Valid @RequestBody ResUserUpdateDTO user)
-            throws IdInvalidException {
-        ResUserUpdateDTO updatedUser = this.userService.update(user);
-        return ResponseFactory.success(updatedUser, "User updated successfully");
-    }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<RestResponse<Void>> deleteUser(@PathVariable(name = "id") String reqId)
+    public ResponseEntity<RestResponse<Void>> deleteUser(@PathVariable(name = "id") long id)
             throws IdInvalidException {
-        long id;
         try {
-            id = Long.parseLong(reqId);
-
             userService.delete(id);
             return ResponseFactory.success(null, "User deleted successfully", HttpStatus.OK);
         } catch (NumberFormatException e) {
-            throw new IdInvalidException("User not found for ID " + reqId);
+            throw new IdInvalidException("User not found for ID " + id);
             // No compilation error, because it's unchecked.
         }
-
     }
 }

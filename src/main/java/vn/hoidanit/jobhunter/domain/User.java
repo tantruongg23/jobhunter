@@ -54,6 +54,10 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Resume> resumes;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

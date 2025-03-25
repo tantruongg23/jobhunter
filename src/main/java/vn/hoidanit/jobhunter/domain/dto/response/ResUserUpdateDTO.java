@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO.ResRoleUserDTO;
 import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 
 @Setter
@@ -29,4 +30,5 @@ public class ResUserUpdateDTO {
     private Instant updatedAt;
 
     private ResCompanyUserDTO company;
+    private ResRoleUserDTO role;
 }

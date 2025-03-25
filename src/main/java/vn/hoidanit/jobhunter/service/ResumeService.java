@@ -19,4 +19,7 @@ public interface ResumeService {
     ResResumeUpdateDTO update(Resume resume);
 
     void delete(long id);
+
+    PaginationResultDTO findByUser(Pageable pageable);
+
 }

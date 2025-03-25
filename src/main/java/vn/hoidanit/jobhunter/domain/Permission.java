@@ -16,6 +16,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 
@@ -23,6 +24,7 @@ import vn.hoidanit.jobhunter.util.SecurityUtil;
 @Table(name = "permissions")
 @Setter
 @Getter
+@NoArgsConstructor
 public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,6 +46,16 @@ public class Permission {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+
+    public Permission(@NotBlank(message = "Name must be not empty") String name,
+            @NotBlank(message = "Api path must be not empty") String apiPath,
+            @NotBlank(message = "Method must be not empty") String method,
+            @NotBlank(message = "Module must be not empty") String module) {
+        this.name = name;
+        this.apiPath = apiPath;
+        this.method = method;
+        this.module = module;
+    }
 
     @PrePersist
     public void handlePrePersist() {

@@ -2,6 +2,8 @@ package vn.hoidanit.jobhunter.util;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.crypto.SecretKey;
@@ -44,16 +46,26 @@ public class SecurityUtil {
     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
-    public String createAccessToken(String email, ResLoginDTO.UserLogin resLoginDTO) {
+    public String createAccessToken(String email, ResLoginDTO resLoginDTO) {
+        ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(resLoginDTO.getUser().getId());
+        userToken.setName(resLoginDTO.getUser().getName());
+        userToken.setEmail(resLoginDTO.getUser().getEmail());
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
+
+        // hardcore permission
+        List<String> listAuthority = new ArrayList<>();
+        listAuthority.add("ROLE_USER_CREATE");
+        listAuthority.add("ROLE_USER_UPDATE");
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
                 .expiresAt(validity)
                 .subject(email)
-                .claim("user", resLoginDTO)
+                .claim("user", userToken)
+                .claim("permission", listAuthority)
                 .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
@@ -61,6 +73,10 @@ public class SecurityUtil {
     }
 
     public String createRefreshToken(String email, ResLoginDTO resLoginDTO) {
+        ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(resLoginDTO.getUser().getId());
+        userToken.setName(resLoginDTO.getUser().getName());
+        userToken.setEmail(resLoginDTO.getUser().getEmail());
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
@@ -69,7 +85,7 @@ public class SecurityUtil {
                 .issuedAt(now)
                 .expiresAt(validity)
                 .subject(email)
-                .claim("user", resLoginDTO.getUser())
+                .claim("user", userToken)
                 .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();

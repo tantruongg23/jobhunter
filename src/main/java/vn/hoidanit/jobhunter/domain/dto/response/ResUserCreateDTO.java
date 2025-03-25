@@ -5,6 +5,7 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO.ResRoleUserDTO;
 import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 
 @Setter
@@ -20,4 +21,5 @@ public class ResUserCreateDTO {
     private Instant createdAt;
 
     private ResCompanyUserDTO company;
+    private ResRoleUserDTO role;
 }

@@ -1,16 +1,20 @@
 package vn.hoidanit.jobhunter.service.impl;
 
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.turkraft.springfilter.converter.FilterSpecification;
+import com.turkraft.springfilter.converter.FilterSpecificationConverter;
+import com.turkraft.springfilter.parser.FilterParser;
+import com.turkraft.springfilter.parser.node.FilterNode;
+
 import vn.hoidanit.jobhunter.domain.Job;
-import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
@@ -22,12 +26,19 @@ import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.ResumeRepository;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.service.ResumeService;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
 
 @Service
 public class ResumeServiceImpl implements ResumeService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
+
+    @Autowired
+    private FilterParser filterParser;
+
+    @Autowired
+    private FilterSpecificationConverter filterSpecificationConverter;
 
     public ResumeServiceImpl(ResumeRepository resumeRepository,
             UserRepository userRepository,
@@ -103,7 +114,7 @@ public class ResumeServiceImpl implements ResumeService {
     }
 
     @Override
-    public PaginationResultDTO findAll(Specification spec, Pageable pageable) {
+    public PaginationResultDTO findAll(Specification<Resume> spec, Pageable pageable) {
 
         Page<Resume> pageResumes = this.resumeRepository.findAll(spec, pageable); // PaginationResultDTO result = new
 
@@ -122,6 +133,31 @@ public class ResumeServiceImpl implements ResumeService {
 
         result.setResult(resumes);
 
+        return result;
+    }
+
+    @Override
+    public PaginationResultDTO findByUser(Pageable pageable) {
+        // query builder
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        FilterNode node = filterParser.parse("email='" + email + "'");
+        FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
+
+        Page<Resume> pageResumes = this.resumeRepository.findAll(spec, pageable);
+        PaginationResultDTO result = new PaginationResultDTO();
+        PaginationResultDTO.Meta meta = new PaginationResultDTO.Meta();
+
+        meta.setPage(pageResumes.getNumber() + 1);
+        meta.setPageSize(pageResumes.getSize());
+        meta.setPages(pageResumes.getTotalPages());
+        meta.setTotal(pageResumes.getTotalElements());
+        result.setMeta(meta);
+
+        List<ResResumeDTO> resumes = pageResumes.getContent().stream()
+                .map(resume -> this.convertToResumeDTO(resume))
+                .collect(Collectors.toList());
+
+        result.setResult(resumes);
         return result;
     }
 

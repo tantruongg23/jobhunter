@@ -11,18 +11,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import vn.hoidanit.jobhunter.domain.Company;
+import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.User;
-
 import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResCompanyUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResUserCreateDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResUserUpdateDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO.ResRoleUserDTO;
 import vn.hoidanit.jobhunter.exception.EmailExistedException;
 import vn.hoidanit.jobhunter.exception.IdInvalidException;
-
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.service.CompanyService;
+import vn.hoidanit.jobhunter.service.RoleService;
 import vn.hoidanit.jobhunter.service.UserService;
 
 @Service
@@ -32,13 +33,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CompanyService companyService;
+    private final RoleService roleService;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            CompanyService companyService) {
+            CompanyService companyService,
+            RoleService roleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyService = companyService;
+        this.roleService = roleService;
     }
 
     @Override
@@ -48,22 +52,36 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        ResCompanyUserDTO companyUserDTO = null;
-
         if (user.getCompany() != null) {
             Company company = this.companyService.findOne(user.getCompany().getId());
             if (company != null) {
-                companyUserDTO = new ResCompanyUserDTO();
-                companyUserDTO.setId(company.getId());
-                companyUserDTO.setName(company.getName());
                 user.setCompany(company);
-
             } else {
                 user.setCompany(null);
             }
         }
 
+        // check role
+        if (user.getRole() != null) {
+            Role role = this.roleService.findOne(user.getRole().getId());
+            user.setRole(role != null ? role : null);
+        }
+
         User createdUser = userRepository.save(user);
+
+        ResCompanyUserDTO companyUserDTO = null;
+        if (createdUser.getCompany() != null) {
+            companyUserDTO = new ResCompanyUserDTO();
+            companyUserDTO.setId(createdUser.getCompany().getId());
+            companyUserDTO.setName(createdUser.getCompany().getName());
+        }
+
+        ResRoleUserDTO roleUserDTO = null;
+        if (createdUser.getRole() != null) {
+            roleUserDTO = new ResRoleUserDTO();
+            roleUserDTO.setId(createdUser.getRole().getId());
+            roleUserDTO.setName(createdUser.getRole().getName());
+        }
 
         ResUserCreateDTO userDTO = ResUserCreateDTO.builder()
                 .id(createdUser.getId())
@@ -73,16 +91,63 @@ public class UserServiceImpl implements UserService {
                 .age(createdUser.getAge())
                 .createdAt(createdUser.getCreatedAt())
                 .company(companyUserDTO)
+                .role(roleUserDTO)
                 .build();
 
         return userDTO;
     }
 
-    public User findById(long id) {
-        User existedUser = userRepository.findById(id)
-                .orElseThrow(() -> new IdInvalidException("User not found for ID " + id));
+    @Override
+    public ResUserUpdateDTO update(ResUserUpdateDTO user) {
+        User existedUser = findById(user.getId()); // throws exception if not found
 
-        return existedUser;
+        if (user.getCompany() != null) {
+            Company company = this.companyService.findOne(user.getCompany().getId());
+            if (company != null) {
+                existedUser.setCompany(company);
+            } else {
+                existedUser.setCompany(null);
+            }
+        }
+
+        // check role
+        if (user.getRole() != null) {
+            Role role = this.roleService.findOne(user.getRole().getId());
+            existedUser.setRole(role != null ? role : null);
+        }
+
+        existedUser.setName(user.getName());
+        existedUser.setGender(user.getGender());
+        existedUser.setAddress(user.getAddress());
+        existedUser.setAge(user.getAge());
+        existedUser = userRepository.save(existedUser);
+
+        ResCompanyUserDTO companyUserDTO = null;
+        if (existedUser.getCompany() != null) {
+            companyUserDTO = new ResCompanyUserDTO();
+            companyUserDTO.setId(existedUser.getCompany().getId());
+            companyUserDTO.setName(existedUser.getCompany().getName());
+        }
+
+        ResRoleUserDTO roleUserDTO = null;
+        if (existedUser.getRole() != null) {
+            roleUserDTO = new ResRoleUserDTO();
+            roleUserDTO.setId(existedUser.getRole().getId());
+            roleUserDTO.setName(existedUser.getRole().getName());
+        }
+
+        ResUserUpdateDTO userUpdateDTO = ResUserUpdateDTO.builder()
+                .id(existedUser.getId())
+                .name(existedUser.getName())
+                .gender(existedUser.getGender())
+                .address(existedUser.getAddress())
+                .age(existedUser.getAge())
+                .updatedAt(existedUser.getUpdatedAt())
+                .company(companyUserDTO)
+                .role(roleUserDTO)
+                .build();
+
+        return userUpdateDTO;
     }
 
     @Override
@@ -118,14 +183,17 @@ public class UserServiceImpl implements UserService {
     public ResUserDTO convertToUserDTO(User user) {
 
         ResCompanyUserDTO companyUserDTO = null;
-
         if (user.getCompany() != null) {
-            Company company = this.companyService.findOne(user.getCompany().getId());
-            if (company != null) {
-                companyUserDTO = new ResCompanyUserDTO();
-                companyUserDTO.setId(company.getId());
-                companyUserDTO.setName(company.getName());
-            }
+            companyUserDTO = new ResCompanyUserDTO();
+            companyUserDTO.setId(user.getCompany().getId());
+            companyUserDTO.setName(user.getCompany().getName());
+        }
+
+        ResRoleUserDTO roleUserDTO = null;
+        if (user.getRole() != null) {
+            roleUserDTO = new ResRoleUserDTO();
+            roleUserDTO.setId(user.getRole().getId());
+            roleUserDTO.setName(user.getRole().getName());
         }
 
         ResUserDTO userDTO = ResUserDTO.builder()
@@ -138,50 +206,10 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .company(companyUserDTO)
+                .role(roleUserDTO)
                 .build();
 
         return userDTO;
-
-    }
-
-    @Override
-    public ResUserUpdateDTO update(ResUserUpdateDTO user) {
-        User existedUser = findById(user.getId()); // throws exception if not found
-
-        existedUser.setName(user.getName());
-        existedUser.setGender(user.getGender());
-        existedUser.setAddress(user.getAddress());
-        existedUser.setAge(user.getAge());
-
-        ResCompanyUserDTO companyUserDTO = null;
-
-        if (user.getCompany() != null) {
-            Company company = this.companyService.findOne(user.getCompany().getId());
-            if (company != null) {
-                companyUserDTO = new ResCompanyUserDTO();
-                companyUserDTO.setId(company.getId());
-                companyUserDTO.setName(company.getName());
-
-                existedUser.setCompany(company);
-            } else {
-                existedUser.setCompany(null);
-            }
-
-        }
-
-        existedUser = userRepository.save(existedUser);
-
-        ResUserUpdateDTO userUpdateDTO = ResUserUpdateDTO.builder()
-                .id(existedUser.getId())
-                .name(existedUser.getName())
-                .gender(existedUser.getGender())
-                .address(existedUser.getAddress())
-                .age(existedUser.getAge())
-                .updatedAt(existedUser.getUpdatedAt())
-                .company(companyUserDTO)
-                .build();
-
-        return userUpdateDTO;
     }
 
     @Override
@@ -193,9 +221,21 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    public User findById(long id) {
+        User existedUser = userRepository.findById(id)
+                .orElseThrow(() -> new IdInvalidException("User not found for ID " + id));
+
+        return existedUser;
+    }
+
     @Override
     public User findByEmail(String email) {
         return this.userRepository.findByEmail(email);
+    }
+
+    @Override
+    public boolean isEmailExist(String email) {
+        return this.userRepository.existsByEmail(email);
     }
 
     public void updateUserToken(String token, String email) {

@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.request.ReqLoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.response.ResLoginDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserCreateDTO;
 import vn.hoidanit.jobhunter.exception.IdInvalidException;
 import vn.hoidanit.jobhunter.response.ResponseFactory;
 import vn.hoidanit.jobhunter.response.RestResponse;
@@ -34,16 +36,19 @@ public class AuthController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtil securityUtil;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder,
             SecurityUtil securityUtil,
-            UserService userService) {
+            UserService userService,
+            PasswordEncoder passwordEncoder) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -72,12 +77,14 @@ public class AuthController {
                 .email(currentUser.getEmail())
                 .name(currentUser.getName())
                 .gender(currentUser.getGender())
+                .role(currentUser.getRole())
                 .build();
         resLoginDTO.setUser(userLogin);
 
         // Create a token
-        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), resLoginDTO.getUser());
+        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), resLoginDTO);
         resLoginDTO.setAccessToken(accessToken);
+
         // Create refresh token
         String refreshToken = this.securityUtil.createRefreshToken(loginDTO.getUsername(), resLoginDTO);
 
@@ -112,6 +119,7 @@ public class AuthController {
                 .email(currentUser.getEmail())
                 .name(currentUser.getName())
                 .gender(currentUser.getGender())
+                .role(currentUser.getRole())
                 .build();
 
         ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount(userLogin);
@@ -143,12 +151,13 @@ public class AuthController {
                     .email(currentUser.getEmail())
                     .name(currentUser.getName())
                     .gender(currentUser.getGender())
+                    .role(currentUser.getRole())
                     .build();
             resLoginDTO.setUser(userLogin);
         }
 
         // Create a token
-        String accessToken = this.securityUtil.createAccessToken(email, resLoginDTO.getUser());
+        String accessToken = this.securityUtil.createAccessToken(email, resLoginDTO);
         resLoginDTO.setAccessToken(accessToken);
         // Create refresh token
         String newRefreshToken = this.securityUtil.createRefreshToken(email, resLoginDTO);
@@ -190,6 +199,18 @@ public class AuthController {
                 .build();
 
         return ResponseFactory.success(null, "Logout successfully", HttpStatus.OK, deleteResponseCookie.toString());
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RestResponse<ResUserCreateDTO>> register(@Valid @RequestBody User user) {
+        boolean isEmailExist = this.userService.isEmailExist(user.getEmail());
+        if (isEmailExist) {
+            throw new IdInvalidException(
+                    "Email " + user.getEmail() + " has already existed. Please use another email.");
+        }
+
+        ResUserCreateDTO createdUser = this.userService.create(user);
+        return ResponseFactory.success(createdUser, "Register user successfully", HttpStatus.CREATED);
     }
 
 }

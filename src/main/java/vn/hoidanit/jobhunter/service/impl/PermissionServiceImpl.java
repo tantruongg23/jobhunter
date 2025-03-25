@@ -40,7 +40,7 @@ public class PermissionServiceImpl implements PermissionService {
         boolean isExisted = this.permissionRepository.existsByApiPathAndMethodAndModule(permission.getApiPath(),
                 permission.getMethod(), permission.getModule());
 
-        if (isExisted) {
+        if (isExisted && this.permissionRepository.existsByIdAndName(permission.getId(), permission.getName())) {
             throw new IdInvalidException("Permission has already existed");
         }
 
