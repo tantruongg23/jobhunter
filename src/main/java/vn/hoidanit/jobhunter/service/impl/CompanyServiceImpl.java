@@ -55,7 +55,7 @@ public class CompanyServiceImpl implements CompanyService {
         meta.setPage(pageable.getPageNumber() + 1);
         meta.setPageSize(pageable.getPageSize());
         meta.setPages(pageCompanies.getTotalPages());
-        meta.setTotal(pageCompanies.getNumberOfElements());
+        meta.setTotal(pageCompanies.getTotalElements());
 
         result.setMeta(meta);
         result.setResult(pageCompanies.getContent());

@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     })
 
     public ResponseEntity<RestResponse<String>> handleCommonCRUDException(Exception ex) {
-        return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Error occurs...");
+        return ResponseFactory.error("Error occurs...", HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(value = {
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
             MissingServletRequestPartException.class
     })
     public ResponseEntity<RestResponse<String>> handleIdException(Exception ex) {
-        return ResponseFactory.error(ex.getMessage(), HttpStatus.BAD_REQUEST, "Exception occurs...");
+        return ResponseFactory.error("Exception occurs...", HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     // Xử lý lỗi BadJwtException và trả về 401 Unauthorized
@@ -52,8 +52,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestResponse<Object>> handleBadJwtException(BadJwtException ex) {
         RestResponse<Object> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-        response.setError(ex.getMessage());
-        response.setMessage("Token is invalid or malformed");
+        response.setError("Token is invalid or malformed");
+        response.setMessage(ex.getMessage());
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<Object>> handleCommonException(Exception ex) {
-        return ResponseFactory.error(ex.getMessage(),
+        return ResponseFactory.error("Internal Server Error",
                 HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
@@ -80,8 +80,16 @@ public class GlobalExceptionHandler {
             MaxUploadSizeExceededException.class
     })
     public ResponseEntity<RestResponse<Object>> handleFileUploadException(Exception ex) {
-        return ResponseFactory.error(ex.getMessage(),
-                HttpStatus.BAD_REQUEST, "Exception occurs when uploading file...");
+        return ResponseFactory.error("Exception occurs when uploading file...",
+                HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {
+            PermissionException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handlePermissionException(Exception ex) {
+        return ResponseFactory.error("Forbidden",
+                HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
