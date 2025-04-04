@@ -75,6 +75,7 @@ Before running the project, ensure the following installations:
 - Node.js (version 16.20.0 - if you want to run and test the frontend directly).
 
 ## Frontend Repository
+https://github.com/tantruongg23/jobhunter-fe
 
 How to set up and run:
 
