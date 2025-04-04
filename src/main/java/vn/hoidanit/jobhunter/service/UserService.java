@@ -1,59 +1,32 @@
 package vn.hoidanit.jobhunter.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.repository.UserRepository;
+import vn.hoidanit.jobhunter.domain.dto.PaginationResultDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserCreateDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserDTO;
+import vn.hoidanit.jobhunter.domain.dto.response.ResUserUpdateDTO;
 
-@Service
-public class UserService {
-  private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
+public interface UserService {
+    ResUserCreateDTO create(User user);
 
-  public UserService(UserRepository userRepository,
-      PasswordEncoder passwordEncoder) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
-  }
+    ResUserDTO findOne(long id);
 
-  public User handleCreateUser(User user) {
-    User newUser = new User();
-    newUser.setEmail(user.getEmail());
-    newUser.setName(user.getName());
-    newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+    PaginationResultDTO findAll(Specification<User> spec, Pageable pageable);
 
-    return this.userRepository.save(newUser);
-  }
+    ResUserUpdateDTO update(ResUserUpdateDTO user);
 
-  public void handleDeleteUser(long id) {
-    this.userRepository.deleteById(id);
-  }
+    void delete(long id);
 
-  public User fetchUserById(long id) {
-    Optional<User> user = this.userRepository.findById(id);
-    return user.isPresent() ? user.get() : null;
-  }
+    User findByEmail(String email);
 
-  public List<User> fetchAllUsers() {
-    List<User> users = this.userRepository.findAll();
-    return users;
-  }
+    boolean isEmailExist(String email);
 
-  public User handleUpdateUser(User user) {
-    User currentUser = this.fetchUserById(user.getId());
+    void updateUserToken(String token, String email);
 
-    if (currentUser != null) {
-      currentUser.setEmail(user.getEmail());
-      currentUser.setName(user.getName());
-      currentUser.setPassword(passwordEncoder.encode(user.getPassword()));
+    User getUserByRefreshTokenAndEmail(String refreshToken, String email);
 
-      currentUser = this.userRepository.save(user);
-    }
-
-    return currentUser;
-  }
+    // long countUserByCompanyId(long companyId);
 }

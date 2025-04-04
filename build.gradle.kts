@@ -1,7 +1,8 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.2.4"
+	id("org.springframework.boot") version "3.2.12"
 	id("io.spring.dependency-management") version "1.1.4"
+	id("io.freefair.lombok") version "8.6"
 }
 
 group = "vn.hoidanit"
@@ -15,6 +16,8 @@ repositories {
 	mavenCentral()
 }
 
+
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -24,6 +27,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	implementation("com.turkraft.springfilter:jpa:3.1.7")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
